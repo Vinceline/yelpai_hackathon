@@ -1,0 +1,26 @@
+.results-pane {
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  background: rgba(2, 6, 23, 0.7);
+  backdrop-filter: blur(8px);
+  padding: 0.9rem;
+  height: 520px;          /* match map height */
+  overflow: hidden;       /* we scroll the list, not the whole panel */
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.results-list {
+  overflow: auto;
+  padding-right: 0.25rem;
+}
+
+/* nicer scrollbar */
+.results-list::-webkit-scrollbar {
+  width: 10px;
+}
+.results-list::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 999px;
+}

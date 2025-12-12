@@ -1,0 +1,33 @@
+@import "leaflet/dist/leaflet.css";
+:root {
+  --bg: #020617;
+  --bg-elevated: #020617;
+  --border-subtle: #1e293b;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --primary: #22c55e;
+  --primary-soft: rgba(34, 197, 94, 0.12);
+  --accent: #38bdf8;
+  --danger: #f97316;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    sans-serif;
+  background: radial-gradient(circle at top left, #0b1120, #020617 55%);
+  color: var(--text);
+}

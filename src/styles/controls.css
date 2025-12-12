@@ -1,0 +1,140 @@
+.app-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.1fr);
+  gap: 1rem;
+  align-items: flex-end;
+  background: var(--bg-elevated);
+  border-radius: 20px;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border-subtle);
+}
+
+.app-controls > *:last-child {
+  grid-column: 1 / -1;
+  justify-self: flex-start;
+}
+
+.location-input-group label,
+.radius-group label,
+.urgency-group span {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.3rem;
+}
+
+.location-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.location-row input {
+  flex: 1;
+  padding: 0.55rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: #020617;
+  color: var(--text);
+  font: inherit;
+}
+
+.location-row input::placeholder {
+  color: #64748b;
+}
+
+/* radius */
+
+.radius-group input[type="range"] {
+  width: 100%;
+}
+
+/* buttons */
+
+.primary-btn {
+  background: var(--primary);
+  color: #020617;
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.ghost-btn {
+  background: transparent;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  padding: 0.45rem 0.9rem;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font: inherit;
+}
+
+.ghost-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* urgency */
+
+.urgency-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+.urgency-btn {
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  padding: 0.2rem 0.8rem;
+  background: transparent;
+  font-size: 0.75rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.urgency-btn--active-chill {
+  background: rgba(148, 163, 184, 0.15);
+  color: var(--text);
+}
+
+.urgency-btn--active-soon {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.urgency-btn--active-now {
+  background: rgba(249, 115, 22, 0.18);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+@media (max-width: 860px) {
+  .app-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-controls > *:last-child {
+    justify-self: stretch;
+  }
+
+  .primary-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+.geo-status,
+.geo-picked {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
