@@ -11,3 +11,17 @@
     height: 420px;
   }
 }
+
+.ref-dot {
+  background: transparent;
+  border: none;
+}
+
+.ref-dot__inner {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.95);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 6px rgba(56, 189, 248, 0.18);
+}

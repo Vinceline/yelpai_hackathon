@@ -63,19 +63,19 @@ function HomePage() {
 
 const buildQuery = () => {
   const intent =
-    activeTab === "restrooms" ? "public restrooms that are accessible to the public" :
-    activeTab === "water" ? "water fountains or bottle refill stations" :
-    activeTab === "food" ? "free food resources like community fridges, soup kitchens, food pantries" :
-    activeTab === "air" ? "places with free air for tires (free air pump)" :
-    "businesses with strong wheelchair accessibility and accessible restrooms";
+    activeTab === "restrooms" ? "places where the public can use a restroom (parks, cafes, libraries, large stores)" :
+    activeTab === "water" ? "places with water fountains or bottle refill stations (parks, gyms, cafes)" :
+    activeTab === "food" ? "free food resources (community fridges, food pantries, soup kitchens)" :
+    activeTab === "air" ? "places that offer free air for tires (gas stations, service centers, tire shops)" :
+    "places with wheelchair accessibility and accessible restrooms";
 
-  const urgencyHint =
-    urgency === "now" ? "Closest options first. I need it ASAP." :
-    urgency === "soon" ? "Prioritize nearby and likely open options." :
-    "Prioritize quality, accessibility, and reliability.";
-
-  return `Find ${intent} near me within about ${radiusKm} km. ${urgencyHint} Return a short list of best options.`;
+  return `
+Find 6 nearby Yelp-listed places for: ${intent}.
+Use the user's coordinates. Prefer closest + highly rated.
+Return Yelp business results (not general advice).
+`;
 };
+
 
 
   const handleToggleControls = () => {
