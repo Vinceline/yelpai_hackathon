@@ -211,9 +211,10 @@ Return Yelp business results (not general advice).
 
       {/* Floating chat bubble */}
       <ChatBubble
-        onClick={toggleConversation}
-        hasSearched={hasSearched.current}
-      />
+  onClick={toggleConversation}
+  hasSearched={hasSearched.current}
+  isOpen={showConversation}
+/>
 
       <Footer />
     </div>

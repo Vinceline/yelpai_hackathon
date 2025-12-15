@@ -1,5 +1,6 @@
 // src/components/chat/ConversationPane.jsx
 import React, { useState, useRef, useEffect } from "react";
+import { mapYelpAiToPlaces } from "../../utils/yelpMapper";
 
 function ConversationPane({ 
   refPoint, 
@@ -7,11 +8,13 @@ function ConversationPane({
   activeTab,
   onConversationResult,
   isVisible,
-  onClose 
+  onClose,
+  currentResults // Pass current results to analyze
 }) {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [lastResults, setLastResults] = useState([]);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -22,7 +25,6 @@ function ConversationPane({
     scrollToBottom();
   }, [messages]);
 
-  // Suggested follow-up questions based on category
   const getSuggestedQuestions = () => {
     const suggestions = {
       restrooms: [
@@ -59,6 +61,96 @@ function ConversationPane({
     return suggestions[activeTab] || [];
   };
 
+  // Analyze user question and generate contextual response
+  const generateContextualResponse = (userQuestion, businesses) => {
+    const question = userQuestion.toLowerCase();
+    
+    // Top choice / recommendation
+    if (question.includes("top") || question.includes("best") || question.includes("recommend")) {
+      const topRated = [...businesses].sort((a, b) => b.score - a.score)[0];
+      if (topRated) {
+        return `Based on ratings, I'd recommend **${topRated.name}** with a ${topRated.score.toFixed(1)} star rating. ${topRated.address}`;
+      }
+    }
+    
+    // Closest option
+    if (question.includes("closest") || question.includes("nearest") || question.includes("close by")) {
+      // Assuming first result is closest if API sorts by distance
+      const closest = businesses[0];
+      if (closest) {
+        return `The closest option is **${closest.name}**${closest.distance ? ` at ${closest.distance}` : ''}. Located at ${closest.address}.`;
+      }
+    }
+    
+    // 24/7 / Always open
+    if (question.includes("24/7") || question.includes("24 7") || question.includes("always open") || question.includes("late night")) {
+      const alwaysOpen = businesses.filter(b => 
+        b.tags.some(t => t.toLowerCase().includes("24/7")) || 
+        b.tags.some(t => t.toLowerCase().includes("24 hours"))
+      );
+      if (alwaysOpen.length > 0) {
+        return `I found ${alwaysOpen.length} place${alwaysOpen.length > 1 ? 's' : ''} open 24/7:\n\n${alwaysOpen.map(b => `• **${b.name}**`).join('\n')}`;
+      } else {
+        return `None of these locations are specifically marked as 24/7. The results have been updated with the best available options. Check individual hours for each place.`;
+      }
+    }
+    
+    // Wheelchair accessible
+    if (question.includes("wheelchair") || question.includes("accessible") || question.includes("ada")) {
+      const accessible = businesses.filter(b => 
+        b.tags.some(t => t.toLowerCase().includes("wheelchair")) ||
+        b.tags.some(t => t.toLowerCase().includes("accessible"))
+      );
+      if (accessible.length > 0) {
+        return `${accessible.length} wheelchair accessible option${accessible.length > 1 ? 's' : ''}:\n\n${accessible.map(b => `• **${b.name}** - ${b.address}`).join('\n')}`;
+      } else {
+        return `None are specifically marked as wheelchair accessible in the data. I recommend calling ahead to confirm accessibility features.`;
+      }
+    }
+    
+    // Clean / cleanliness
+    if (question.includes("clean") || question.includes("nice") || question.includes("well maintained")) {
+      const highRated = businesses.filter(b => b.score >= 4.5);
+      if (highRated.length > 0) {
+        return `Based on ratings, these ${highRated.length} have high reviews (4.5+ stars):\n\n${highRated.map(b => `• **${b.name}** (${b.score.toFixed(1)} ⭐)`).join('\n')}`;
+      }
+    }
+    
+    // Gender neutral
+    if (question.includes("gender") || question.includes("neutral") || question.includes("all-gender")) {
+      const genderNeutral = businesses.filter(b => 
+        b.tags.some(t => t.toLowerCase().includes("gender-neutral"))
+      );
+      if (genderNeutral.length > 0) {
+        return `Found ${genderNeutral.length} with gender-neutral facilities:\n\n${genderNeutral.map(b => `• **${b.name}**`).join('\n')}`;
+      } else {
+        return `No places are specifically marked as having gender-neutral restrooms. You might want to call ahead to inquire.`;
+      }
+    }
+    
+    // Compare options
+    if (question.includes("compare") || question.includes("difference") || question.includes("which is better")) {
+      const top3 = businesses.slice(0, 3);
+      return `Here's a quick comparison of the top 3:\n\n${top3.map((b, i) => 
+        `${i + 1}. **${b.name}** - ${b.score.toFixed(1)} ⭐${b.distance ? ` - ${b.distance}` : ''}`
+      ).join('\n')}`;
+    }
+    
+    // How many / count
+    if (question.includes("how many") || question.includes("count")) {
+      return `I found **${businesses.length} places** in total. The map and list have been updated with all results.`;
+    }
+    
+    // Default: list all with key info
+    if (businesses.length > 0) {
+      return `I found **${businesses.length} places**. Here's a quick overview:\n\n${businesses.slice(0, 5).map(b => 
+        `• **${b.name}** (${b.score.toFixed(1)} ⭐)${b.distance ? ` - ${b.distance}` : ''}`
+      ).join('\n')}${businesses.length > 5 ? `\n\n...and ${businesses.length - 5} more on the map.` : ''}`;
+    }
+    
+    return `I've updated the results based on your question. Check the map and list for details!`;
+  };
+
   const handleSendMessage = async (message = inputValue.trim()) => {
     if (!message || !refPoint?.lat || !refPoint?.lng) return;
 
@@ -75,10 +167,7 @@ function ConversationPane({
 
     try {
       const payload = chatId
-        ? {
-            query: message,
-            chat_id: chatId,
-          }
+        ? { query: message, chat_id: chatId }
         : {
             query: message,
             user_context: {
@@ -96,23 +185,12 @@ function ConversationPane({
 
       const data = await resp.json();
 
-      // Extract better message from the response
-      let assistantContent = "I found some updated results for you.";
-      
-      // Try to extract meaningful message from Yelp's response
-      if (data.message) {
-        assistantContent = data.message;
-      } else if (data.entities) {
-        const businesses = data.entities
-          .find((e) => Array.isArray(e?.businesses))
-          ?.businesses || [];
-        
-        if (businesses.length > 0) {
-          assistantContent = `I found ${businesses.length} places that match your request. Check the updated results!`;
-        } else {
-          assistantContent = "I couldn't find any places matching that criteria. Try adjusting your search?";
-        }
-      }
+      // Map to places
+      const places = mapYelpAiToPlaces(data);
+      setLastResults(places);
+
+      // Generate contextual response
+      const assistantContent = generateContextualResponse(message, places);
       
       const assistantMessage = {
         id: Date.now() + 1,
@@ -120,12 +198,12 @@ function ConversationPane({
         content: assistantContent,
         timestamp: new Date(),
         data: data,
-        resultsCount: data.entities?.find((e) => Array.isArray(e?.businesses))?.businesses?.length || 0,
+        resultsCount: places.length,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Pass results back to parent to update map/cards
+      // Update results
       if (onConversationResult) {
         onConversationResult(data);
       }
@@ -134,7 +212,7 @@ function ConversationPane({
       const errorMessage = {
         id: Date.now() + 1,
         role: "assistant",
-        content: "Sorry, I had trouble processing that. Can you try rephrasing your question?",
+        content: "Sorry, I had trouble processing that. Can you try rephrasing?",
         timestamp: new Date(),
         isError: true,
       };
@@ -161,7 +239,7 @@ function ConversationPane({
     <div className="conversation-pane">
       <div className="conversation-header">
         <div className="header-content">
-          <h3>GottaGo AI Assistant</h3>
+          <h3>GottaGo AI Guide</h3>
         </div>
         <button
           className="conversation-close"
@@ -178,8 +256,7 @@ function ConversationPane({
             <div className="welcome-icon">💬</div>
             <h4>How can I help?</h4>
             <p>
-              Ask me to refine your results, find specific features, or get
-              recommendations
+              Ask me about ratings, locations, accessibility, hours, or anything else!
             </p>
           </div>
         )}
@@ -195,10 +272,15 @@ function ConversationPane({
               {msg.role === "user" ? "👤" : "🤖"}
             </div>
             <div className="message-content">
-              <div className="message-text">{msg.content}</div>
+              <div 
+                className="message-text"
+                dangerouslySetInnerHTML={{
+                  __html: msg.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>')
+                }}
+              />
               {msg.resultsCount > 0 && (
                 <div className="message-results-badge">
-                  {msg.resultsCount} places found
+                  {msg.resultsCount} places
                 </div>
               )}
               <div className="message-time">
@@ -248,7 +330,7 @@ function ConversationPane({
       <div className="input-container">
         <textarea
           className="conversation-input"
-          placeholder="Ask a follow-up question..."
+          placeholder="Ask me anything..."
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyPress={handleKeyPress}

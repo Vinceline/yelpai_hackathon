@@ -1,12 +1,12 @@
 // src/components/chat/ChatBubble.jsx
 import React from "react";
 
-function ChatBubble({ onClick, hasSearched, unreadCount = 0 }) {
+function ChatBubble({ onClick, hasSearched, isOpen = false, unreadCount = 0 }) {
   if (!hasSearched) return null;
 
   return (
     <button
-      className="chat-bubble"
+      className={`chat-bubble ${isOpen ? 'chat-bubble--hidden' : ''}`}
       onClick={onClick}
       aria-label="Open AI chat assistant"
     >
@@ -29,7 +29,6 @@ function ChatBubble({ onClick, hasSearched, unreadCount = 0 }) {
       {unreadCount > 0 && (
         <div className="chat-bubble-badge">{unreadCount}</div>
       )}
-      <div className="chat-bubble-pulse"></div>
     </button>
   );
 }

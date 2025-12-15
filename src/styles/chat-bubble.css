@@ -23,6 +23,13 @@
   font-size: 0.85rem;
 }
 
+/* Hide bubble when conversation is open */
+.chat-bubble.chat-bubble--hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.8);
+}
+
 @keyframes slideInBubble {
   from {
     opacity: 0;
