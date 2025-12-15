@@ -1,0 +1,59 @@
+/* Add to your existing results.css or create accessibility.css */
+
+/* ===================================
+   ACCESSIBILITY BADGES
+   =================================== */
+
+.accessibility-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 12px;
+  background:rgb(200, 221, 228);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 12px;
+}
+
+.accessibility-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--primary);
+  color: #020617;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.badge-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Make them pulse on hover to draw attention */
+.accessibility-badge:hover {
+  animation: badgePulse 0.6s ease-in-out;
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* High contrast for better visibility */
+@media (prefers-contrast: high) {
+  .accessibility-badges {
+    border-width: 2px;
+  }
+  
+  .accessibility-badge {
+    border: 2px solid #020617;
+  }
+}

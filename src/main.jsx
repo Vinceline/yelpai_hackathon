@@ -7,6 +7,9 @@ import "./styles/nav.css";
 import "./styles/map.css";
 import "./styles/results.css";
 import "./styles/chat-bubble.css";
+import "./styles/accessibility.css";
+import './styles/header.css';
+import './styles/footer.css';
 
 
 import App from './App.jsx'

@@ -1,0 +1,73 @@
+/* src/styles/header.css */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.5rem 1.75rem;
+  background:rgb(200, 221, 228);
+  border-radius: 16px;
+  margin-bottom: 1rem;
+}
+
+.app-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.app-logo {
+  width: 160;
+  height: auto;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+.app-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.app-title-block p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: black;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+/* Skip link for accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--primary);
+  color: #020617;
+  padding: 8px 16px;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 0 0 4px 0;
+  z-index: 10000;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 1.25rem;
+  }
+
+  .app-logo {
+    width: 64px;
+    height: 64px;
+  }
+
+  .app-title-block p {
+    font-size: 0.85rem;
+  }
+}

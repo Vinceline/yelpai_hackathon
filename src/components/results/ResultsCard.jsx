@@ -1,4 +1,6 @@
+// src/components/results/ResultsCard.jsx
 import React, { useState } from "react";
+import AccessibilityBadge from "../accessibility/AccessibilityBadge";
 
 function ResultCard({ place }) {
   const [showSummary, setShowSummary] = useState(false);
@@ -11,7 +13,19 @@ function ResultCard({ place }) {
     setShowSummary(false);
   };
 
-  // Extract AI-generated summaries from Yelp response
+  // Extract accessibility features
+  const accessibilityFeatures = place.tags.filter(tag => {
+    const lower = tag.toLowerCase();
+    return lower.includes('wheelchair') || 
+           lower.includes('accessible') || 
+           lower.includes('gender-neutral') ||
+           lower.includes('ramp') ||
+           lower.includes('elevator') ||
+           lower.includes('braille');
+  });
+
+  const otherTags = place.tags.filter(tag => !accessibilityFeatures.includes(tag));
+
   const hasSummary = place.summaries && place.summaries.length > 0;
   const contextInfo = place.contextual_info;
 
@@ -24,20 +38,30 @@ function ResultCard({ place }) {
             <p className="result-category">{place.categoryLabel}</p>
           </div>
           <div className="result-meta">
-            <span className="result-distance">{place.distance}</span>
-            <span className="result-score">{place.score.toFixed(1)}</span>
+            {place.distance && (
+              <span className="result-distance">{place.distance}</span>
+            )}
+            <span className="result-score">{place.score.toFixed(1)} ⭐</span>
           </div>
         </header>
 
         <p className="result-address">{place.address}</p>
 
-        <div className="result-tags">
-          {place.tags.map((tag) => (
-            <span key={tag} className="tag">
-              {tag}
-            </span>
-          ))}
-        </div>
+        {/* Accessibility features prominently displayed */}
+        {accessibilityFeatures.length > 0 && (
+          <AccessibilityBadge features={accessibilityFeatures} />
+        )}
+
+        {/* Other tags */}
+        {otherTags.length > 0 && (
+          <div className="result-tags">
+            {otherTags.map((tag) => (
+              <span key={tag} className="tag">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         <footer className="result-footer">
           <span
@@ -47,15 +71,17 @@ function ResultCard({ place }) {
           >
             {place.isOpen ? "Open now" : "Closed"}
           </span>
+          
           {hasSummary && (
             <button
               type="button"
               className="ghost-btn"
               onClick={handleViewSummary}
             >
-              View AI summary
+              View details
             </button>
           )}
+          
           {place.yelpUrl && (
             <a
               href={place.yelpUrl}
@@ -64,7 +90,7 @@ function ResultCard({ place }) {
               className="ghost-btn"
               style={{ textDecoration: 'none', display: 'inline-block' }}
             >
-              View on Yelp
+              Yelp page
             </a>
           )}
         </footer>
@@ -75,7 +101,7 @@ function ResultCard({ place }) {
         <div className="modal-overlay" onClick={closeSummary}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>{place.name} - AI Summary</h3>
+              <h3>{place.name}</h3>
               <button
                 type="button"
                 className="modal-close"
@@ -88,10 +114,22 @@ function ResultCard({ place }) {
             <div className="modal-body">
               {contextInfo && (
                 <div className="summary-section">
-                  <h4>Context</h4>
+                  <h4>About This Place</h4>
                   <p>{contextInfo}</p>
                 </div>
               )}
+              
+              {accessibilityFeatures.length > 0 && (
+                <div className="summary-section">
+                  <h4>♿ Accessibility Features</h4>
+                  <ul>
+                    {accessibilityFeatures.map((feature, idx) => (
+                      <li key={idx}>{feature}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
               {place.summaries && place.summaries.length > 0 && (
                 <div className="summary-section">
                   <h4>Reviews Summary</h4>
@@ -102,8 +140,9 @@ function ResultCard({ place }) {
                   ))}
                 </div>
               )}
+              
               {!hasSummary && !contextInfo && (
-                <p className="no-summary">No AI summary available for this place.</p>
+                <p className="no-summary">No additional details available.</p>
               )}
             </div>
             <div className="modal-footer">
