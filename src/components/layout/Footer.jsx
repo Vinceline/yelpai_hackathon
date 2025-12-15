@@ -5,7 +5,7 @@ function Footer() {
   return (
     <footer className="app-footer" role="contentinfo">
       <span>
-        <strong>GottaGo</strong> · Built for Yelp AI Hackathon 2024
+        <strong>GottaGo</strong> · Built for Yelp AI Hackathon 2025
       </span>
       <span className="footer-right">
         <span className="dot" aria-hidden="true" />
