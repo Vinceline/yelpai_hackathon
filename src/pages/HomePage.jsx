@@ -7,6 +7,7 @@ import CategoryTabs from "../components/nav/CategoryTabs";
 import MapPane from "../components/map/MapPane";
 import ResultsPane from "../components/results/ResultsPane";
 import ConversationPane from "../components/chat/ConversationPane";
+import ChatBubble from "../components/chat/ChatBubble";
 import { getMockResults } from "../data/mockResults";
 import { mapYelpAiToPlaces } from "../utils/yelpMapper";
 
@@ -96,7 +97,6 @@ function HomePage() {
         ? "places that offer free air for tires (gas stations, service centers, tire shops)"
         : "places with wheelchair accessibility and accessible restrooms";
 
-    // Add urgency modifier
     let urgencyModifier = "";
     if (urgency === "now") {
       urgencyModifier = " Prioritize places that are open 24/7 or currently open NOW.";
@@ -123,7 +123,7 @@ Return Yelp business results (not general advice).
       resultsCache.current = {};
       hasSearched.current = false;
       setResults([]);
-      setChatId(null); // Reset chat when location changes
+      setChatId(null);
     }
     setRefPoint(newRefPoint);
   };
@@ -138,12 +138,10 @@ Return Yelp business results (not general advice).
   };
 
   const handleConversationResult = (data) => {
-    // Update results from conversation
     if (data?.chat_id) setChatId(data.chat_id);
 
     const places = mapYelpAiToPlaces(data);
-    
-    // Update cache for current tab
+
     resultsCache.current[activeTab] = places;
     setResults(places);
   };
@@ -164,18 +162,6 @@ Return Yelp business results (not general advice).
         >
           {showControls ? "Hide filters" : "Show filters"}
         </button>
-
-        {hasSearched.current && (
-          <button
-            type="button"
-            className={`conversation-toggle-btn ${
-              showConversation ? "conversation-toggle-btn--active" : ""
-            }`}
-            onClick={toggleConversation}
-          >
-            💬 {showConversation ? "Hide" : "Start"} Conversation
-          </button>
-        )}
       </section>
 
       {showControls && (
@@ -199,7 +185,7 @@ Return Yelp business results (not general advice).
         onTabChange={setActiveTab}
       />
 
-      <main className="app-main">
+      <main className={`app-main ${showConversation ? "app-main--with-chat" : ""}`}>
         <div className="results-map-container">
           <MapPane results={results} refPoint={refPoint} />
           <ResultsPane
@@ -210,17 +196,24 @@ Return Yelp business results (not general advice).
         </div>
 
         {showConversation && (
-          <div className="conversation-container">
+          <div className="conversation-container conversation-container--slide-in">
             <ConversationPane
               refPoint={refPoint}
               chatId={chatId}
               activeTab={activeTab}
               onConversationResult={handleConversationResult}
               isVisible={showConversation}
+              onClose={toggleConversation}
             />
           </div>
         )}
       </main>
+
+      {/* Floating chat bubble */}
+      <ChatBubble
+        onClick={toggleConversation}
+        hasSearched={hasSearched.current}
+      />
 
       <Footer />
     </div>

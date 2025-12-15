@@ -6,6 +6,8 @@ import "./styles/controls.css";
 import "./styles/nav.css";
 import "./styles/map.css";
 import "./styles/results.css";
+import "./styles/chat-bubble.css";
+
 
 import App from './App.jsx'
 

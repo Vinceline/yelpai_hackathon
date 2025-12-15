@@ -6,7 +6,8 @@ function ConversationPane({
   chatId, 
   activeTab,
   onConversationResult,
-  isVisible 
+  isVisible,
+  onClose 
 }) {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
@@ -38,9 +39,9 @@ function ConversationPane({
       ],
       food: [
         "Which are open today?",
-        "Tell me about the community fridge",
-        "Which serves hot meals?",
-        "Any vegetarian options?",
+        "Tell me about hot meals",
+        "Which serves vegetarian options?",
+        "Any that don't require ID?",
       ],
       air: [
         "Which are free vs paid?",
@@ -95,8 +96,23 @@ function ConversationPane({
 
       const data = await resp.json();
 
-      // Extract assistant message
-      const assistantContent = data.message || "I found some results for you.";
+      // Extract better message from the response
+      let assistantContent = "I found some updated results for you.";
+      
+      // Try to extract meaningful message from Yelp's response
+      if (data.message) {
+        assistantContent = data.message;
+      } else if (data.entities) {
+        const businesses = data.entities
+          .find((e) => Array.isArray(e?.businesses))
+          ?.businesses || [];
+        
+        if (businesses.length > 0) {
+          assistantContent = `I found ${businesses.length} places that match your request. Check the updated results!`;
+        } else {
+          assistantContent = "I couldn't find any places matching that criteria. Try adjusting your search?";
+        }
+      }
       
       const assistantMessage = {
         id: Date.now() + 1,
@@ -104,6 +120,7 @@ function ConversationPane({
         content: assistantContent,
         timestamp: new Date(),
         data: data,
+        resultsCount: data.entities?.find((e) => Array.isArray(e?.businesses))?.businesses?.length || 0,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -117,7 +134,7 @@ function ConversationPane({
       const errorMessage = {
         id: Date.now() + 1,
         role: "assistant",
-        content: "Sorry, I had trouble processing that. Can you try again?",
+        content: "Sorry, I had trouble processing that. Can you try rephrasing your question?",
         timestamp: new Date(),
         isError: true,
       };
@@ -144,18 +161,22 @@ function ConversationPane({
     <div className="conversation-pane">
       <div className="conversation-header">
         <div className="header-content">
-          <h3>🤖 Ask me anything</h3>
-          <p className="header-subtitle">
-            Refine your search with natural language
-          </p>
+          <h3>GottaGo AI Assistant</h3>
         </div>
+        <button
+          className="conversation-close"
+          onClick={onClose}
+          aria-label="Close chat"
+        >
+          ×
+        </button>
       </div>
 
       <div className="messages-container">
         {messages.length === 0 && (
           <div className="welcome-message">
             <div className="welcome-icon">💬</div>
-            <h4>Start a conversation</h4>
+            <h4>How can I help?</h4>
             <p>
               Ask me to refine your results, find specific features, or get
               recommendations
@@ -175,6 +196,11 @@ function ConversationPane({
             </div>
             <div className="message-content">
               <div className="message-text">{msg.content}</div>
+              {msg.resultsCount > 0 && (
+                <div className="message-results-badge">
+                  {msg.resultsCount} places found
+                </div>
+              )}
               <div className="message-time">
                 {msg.timestamp.toLocaleTimeString([], {
                   hour: "2-digit",
