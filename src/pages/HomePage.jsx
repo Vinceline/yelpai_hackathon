@@ -6,6 +6,7 @@ import SearchControls from "../components/controls/SearchControls";
 import CategoryTabs from "../components/nav/CategoryTabs";
 import MapPane from "../components/map/MapPane";
 import ResultsPane from "../components/results/ResultsPane";
+import ConversationPane from "../components/chat/ConversationPane";
 import { getMockResults } from "../data/mockResults";
 import { mapYelpAiToPlaces } from "../utils/yelpMapper";
 
@@ -19,31 +20,27 @@ const TABS = [
 
 function HomePage() {
   const [activeTab, setActiveTab] = useState("restrooms");
-  const [urgency, setUrgency] = useState("chill"); // chill | soon | now
+  const [urgency, setUrgency] = useState("chill");
   const [location, setLocation] = useState("");
   const [radiusKm, setRadiusKm] = useState(3);
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState([]);
-  const [showControls, setShowControls] = useState(false); 
+  const [showControls, setShowControls] = useState(false);
   const [refPoint, setRefPoint] = useState(null);
   const [chatId, setChatId] = useState(null);
-  
-  // Cache results for each category to avoid redundant API calls
+  const [showConversation, setShowConversation] = useState(false);
+
   const resultsCache = useRef({});
   const hasSearched = useRef(false);
 
-  // Handle tab changes - load from cache or fetch new results
   useEffect(() => {
-    // Don't auto-search on mount or if no location is set
     if (!hasSearched.current || !refPoint?.lat || !refPoint?.lng) {
       return;
     }
 
-    // Check if we have cached results for this category
     if (resultsCache.current[activeTab]) {
       setResults(resultsCache.current[activeTab]);
     } else {
-      // Fetch new results for this category
       handleSearch();
     }
   }, [activeTab]);
@@ -51,7 +48,6 @@ function HomePage() {
   const handleSearch = async () => {
     if (!refPoint?.lat || !refPoint?.lng) return;
 
-    // Clear current results immediately to show loading state
     setResults([]);
     setIsLoading(true);
     hasSearched.current = true;
@@ -77,13 +73,11 @@ function HomePage() {
       if (data?.chat_id) setChatId(data.chat_id);
 
       const places = mapYelpAiToPlaces(data);
-      
-      // Cache the results for this category
+
       resultsCache.current[activeTab] = places;
       setResults(places);
     } catch (e) {
       console.error(e);
-      // Set empty array on error so we don't show stale data
       setResults([]);
     } finally {
       setIsLoading(false);
@@ -91,15 +85,27 @@ function HomePage() {
   };
 
   const buildQuery = () => {
-    const intent =
-      activeTab === "restrooms" ? "places where the public can use a restroom (parks, cafes, libraries, large stores)" :
-      activeTab === "water" ? "places with water fountains or bottle refill stations (parks, gyms, cafes)" :
-      activeTab === "food" ? "free food resources (community fridges, food pantries, soup kitchens)" :
-      activeTab === "air" ? "places that offer free air for tires (gas stations, service centers, tire shops)" :
-      "places with wheelchair accessibility and accessible restrooms";
+    const baseIntent =
+      activeTab === "restrooms"
+        ? "places where the public can use a restroom (parks, cafes, libraries, large stores)"
+        : activeTab === "water"
+        ? "places with water fountains or bottle refill stations (parks, gyms, cafes)"
+        : activeTab === "food"
+        ? "free food resources (community fridges, food pantries, soup kitchens)"
+        : activeTab === "air"
+        ? "places that offer free air for tires (gas stations, service centers, tire shops)"
+        : "places with wheelchair accessibility and accessible restrooms";
+
+    // Add urgency modifier
+    let urgencyModifier = "";
+    if (urgency === "now") {
+      urgencyModifier = " Prioritize places that are open 24/7 or currently open NOW.";
+    } else if (urgency === "soon") {
+      urgencyModifier = " Prioritize places within walking distance (closest first).";
+    }
 
     return `
-Find 6 nearby Yelp-listed places for: ${intent}.
+Find 6 nearby Yelp-listed places for: ${baseIntent}.${urgencyModifier}
 Use the user's coordinates. Prefer closest + highly rated.
 Return Yelp business results (not general advice).
 `;
@@ -109,30 +115,47 @@ Return Yelp business results (not general advice).
     setShowControls((prev) => !prev);
   };
 
-  // Clear cache when location or radius changes
   const handleLocationChange = (newRefPoint) => {
-    if (newRefPoint?.lat !== refPoint?.lat || newRefPoint?.lng !== refPoint?.lng) {
-      resultsCache.current = {}; // Clear all cached results
+    if (
+      newRefPoint?.lat !== refPoint?.lat ||
+      newRefPoint?.lng !== refPoint?.lng
+    ) {
+      resultsCache.current = {};
       hasSearched.current = false;
       setResults([]);
+      setChatId(null); // Reset chat when location changes
     }
     setRefPoint(newRefPoint);
   };
 
   const handleRadiusChange = (newRadius) => {
     if (newRadius !== radiusKm) {
-      resultsCache.current = {}; // Clear all cached results
+      resultsCache.current = {};
       hasSearched.current = false;
       setResults([]);
     }
     setRadiusKm(newRadius);
   };
 
+  const handleConversationResult = (data) => {
+    // Update results from conversation
+    if (data?.chat_id) setChatId(data.chat_id);
+
+    const places = mapYelpAiToPlaces(data);
+    
+    // Update cache for current tab
+    resultsCache.current[activeTab] = places;
+    setResults(places);
+  };
+
+  const toggleConversation = () => {
+    setShowConversation((prev) => !prev);
+  };
+
   return (
     <div className="app-root">
       <Header />
 
-      {/* Toggle row */}
       <section className="controls-toggle-row">
         <button
           type="button"
@@ -141,6 +164,18 @@ Return Yelp business results (not general advice).
         >
           {showControls ? "Hide filters" : "Show filters"}
         </button>
+
+        {hasSearched.current && (
+          <button
+            type="button"
+            className={`conversation-toggle-btn ${
+              showConversation ? "conversation-toggle-btn--active" : ""
+            }`}
+            onClick={toggleConversation}
+          >
+            💬 {showConversation ? "Hide" : "Start"} Conversation
+          </button>
+        )}
       </section>
 
       {showControls && (
@@ -165,12 +200,26 @@ Return Yelp business results (not general advice).
       />
 
       <main className="app-main">
-        <MapPane results={results} refPoint={refPoint} />
-        <ResultsPane
-          activeTab={activeTab}
-          results={results}
-          isLoading={isLoading}
-        />
+        <div className="results-map-container">
+          <MapPane results={results} refPoint={refPoint} />
+          <ResultsPane
+            activeTab={activeTab}
+            results={results}
+            isLoading={isLoading}
+          />
+        </div>
+
+        {showConversation && (
+          <div className="conversation-container">
+            <ConversationPane
+              refPoint={refPoint}
+              chatId={chatId}
+              activeTab={activeTab}
+              onConversationResult={handleConversationResult}
+              isVisible={showConversation}
+            />
+          </div>
+        )}
       </main>
 
       <Footer />
