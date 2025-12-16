@@ -1,11 +1,10 @@
 .results-pane {
   border: 1px solid var(--border-subtle);
   border-radius: 20px;
-  background: rgba(2, 6, 23, 0.7);
-  backdrop-filter: blur(8px);
+  background: #f8fafc; /* Much lighter background */
   padding: 0.9rem;
-  height: 520px;          /* match map height */
-  overflow: hidden;       /* we scroll the list, not the whole panel */
+  height: 520px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -16,11 +15,111 @@
   padding-right: 0.25rem;
 }
 
-/* nicer scrollbar */
+/* Result card - darker background for better contrast */
+.result-card {
+  background: #334155; /* Dark slate background */
+  border: 1px solid #475569;
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.result-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: var(--primary);
+}
+
+/* Better text contrast on dark card */
+.result-card h3 {
+  color: #f1f5f9; /* Nearly white */
+  font-size: 1.1rem;
+  margin: 0 0 0.25rem 0;
+  font-weight: 600;
+}
+
+.result-category {
+  color: #cbd5e1; /* Light gray */
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.result-address {
+  color: #e2e8f0; /* Very light gray */
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+}
+
+.result-meta {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.result-distance,
+.result-score {
+  color: #f1f5f9; /* Nearly white */
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Accessibility badge with better contrast */
+.accessibility-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 12px;
+  background: rgba(34, 197, 94, 0.15); /* Subtle green tint */
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 12px;
+}
+
+.accessibility-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--primary); /* Bright green */
+  color: #020617; /* Black text on green */
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Status pills with better contrast */
+.status-pill {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid;
+}
+
+.status-pill--open {
+  background: var(--primary);
+  color: #020617;
+  border-color: var(--primary);
+}
+
+.status-pill--closed {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+/* Scrollbar */
 .results-list::-webkit-scrollbar {
   width: 10px;
 }
+
 .results-list::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
+  background: rgba(148, 163, 184, 0.4);
   border-radius: 999px;
+}
+
+.results-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
 }

@@ -3,10 +3,11 @@
   grid-template-columns: minmax(0, 2fr) minmax(0, 1.1fr);
   gap: 1rem;
   align-items: flex-end;
-  background: var(--bg-elevated);
+  background: white; /* White background */
   border-radius: 20px;
-  padding: 1rem 1.25rem;
-  border: 1px solid var(--border-subtle);
+  padding: 1.5rem 1.75rem;
+  border: 2px solid #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .app-controls > *:last-child {
@@ -14,15 +15,18 @@
   justify-self: flex-start;
 }
 
+/* Labels with better contrast */
 .location-input-group label,
 .radius-group label,
 .urgency-group span {
   display: block;
-  font-size: 0.8rem;
-  color: var(--muted);
-  margin-bottom: 0.3rem;
+  font-size: 0.85rem;
+  color: #1e293b; /* Dark slate */
+  margin-bottom: 0.4rem;
+  font-weight: 600;
 }
 
+/* Input fields with better contrast */
 .location-row {
   display: flex;
   gap: 0.5rem;
@@ -30,97 +34,137 @@
 
 .location-row input {
   flex: 1;
-  padding: 0.55rem 0.7rem;
-  border-radius: 999px;
-  border: 1px solid var(--border-subtle);
-  background: #020617;
-  color: var(--text);
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  border: 2px solid #cbd5e1;
+  background: white;
+  color: #020617; /* Black text */
   font: inherit;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.location-row input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
 }
 
 .location-row input::placeholder {
-  color: #64748b;
+  color: #94a3b8; /* Medium gray */
 }
 
-/* radius */
+/* Geocoding status text */
+.geo-status,
+.geo-picked {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+  color: #475569; /* Dark gray */
+  font-weight: 500;
+}
 
+/* Radius slider */
 .radius-group input[type="range"] {
   width: 100%;
+  height: 6px;
+  accent-color: var(--primary);
 }
 
-/* buttons */
-
+/* Buttons with better contrast */
 .primary-btn {
   background: var(--primary);
-  color: #020617;
+  color: #020617; /* Black text on green */
   border: none;
   border-radius: 999px;
-  padding: 0.55rem 1.4rem;
-  font-weight: 600;
+  padding: 0.7rem 1.8rem;
+  font-weight: 700;
   cursor: pointer;
   margin-top: 0.5rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+.primary-btn:hover {
+  background: #16a34a; /* Darker green on hover */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
 }
 
 .primary-btn:disabled {
   opacity: 0.6;
   cursor: wait;
+  transform: none;
 }
 
 .ghost-btn {
-  background: transparent;
+  background: white;
   border-radius: 999px;
-  border: 1px solid var(--border-subtle);
-  padding: 0.45rem 0.9rem;
-  color: var(--muted);
+  border: 2px solid #cbd5e1;
+  padding: 0.5rem 1rem;
+  color: #1e293b; /* Dark text */
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font: inherit;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
 .ghost-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(34, 197, 94, 0.05);
 }
 
-/* urgency */
-
+/* Urgency buttons with better contrast */
 .urgency-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.25rem;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
 }
 
 .urgency-btn {
   border-radius: 999px;
-  border: 1px solid var(--border-subtle);
-  padding: 0.2rem 0.8rem;
-  background: transparent;
-  font-size: 0.75rem;
-  color: var(--muted);
+  border: 2px solid #cbd5e1;
+  padding: 0.4rem 1rem;
+  background: white;
+  font-size: 0.85rem;
+  color: #475569; /* Dark gray */
   cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.urgency-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .urgency-btn--active-chill {
-  background: rgba(148, 163, 184, 0.15);
-  color: var(--text);
+  background: #f1f5f9;
+  color: #1e293b;
+  border-color: #64748b;
 }
 
 .urgency-btn--active-soon {
-  background: rgba(56, 189, 248, 0.18);
+  background: rgba(56, 189, 248, 0.15);
   border-color: var(--accent);
-  color: var(--accent);
+  color: #0369a1; /* Dark blue */
+  font-weight: 700;
 }
 
 .urgency-btn--active-now {
-  background: rgba(249, 115, 22, 0.18);
+  background: rgba(249, 115, 22, 0.15);
   border-color: var(--danger);
-  color: var(--danger);
+  color: #c2410c; /* Dark orange */
+  font-weight: 700;
 }
 
 @media (max-width: 860px) {
   .app-controls {
     grid-template-columns: minmax(0, 1fr);
+    padding: 1.25rem;
   }
 
   .app-controls > *:last-child {
@@ -131,10 +175,4 @@
     width: 100%;
     text-align: center;
   }
-}
-.geo-status,
-.geo-picked {
-  margin: 0.35rem 0 0;
-  font-size: 0.8rem;
-  color: var(--muted);
 }
