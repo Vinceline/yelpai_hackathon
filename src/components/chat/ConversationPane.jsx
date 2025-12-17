@@ -177,7 +177,7 @@ function ConversationPane({
             },
           };
 
-      const resp = await fetch("http://localhost:5174/api/yelp-ai", {
+      const resp = await fetch("http://localhost:3000/api/yelp-ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

@@ -34,20 +34,36 @@ function HomePage() {
   const resultsCache = useRef({});
   const hasSearched = useRef(false);
 
+  // Get user's current location on mount
   useEffect(() => {
-    if (!hasSearched.current || !refPoint?.lat || !refPoint?.lng) {
+    if (navigator.geolocation && !refPoint) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setRefPoint({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.warn("Geolocation error:", error);
+          // Set a default location if geolocation fails
+          setRefPoint({ lat: 37.7749, lng: -122.4194 }); // San Francisco
+        }
+      );
+    }
+  }, []);
+
+  const handleSearch = async () => {
+    if (!refPoint?.lat || !refPoint?.lng) {
+      alert("Please set your location first or allow location access");
       return;
     }
 
-    if (resultsCache.current[activeTab]) {
-      setResults(resultsCache.current[activeTab]);
-    } else {
-      handleSearch();
-    }
-  }, [activeTab]);
-
-  const handleSearch = async () => {
-    if (!refPoint?.lat || !refPoint?.lng) return;
+    console.log("🔍 Starting search with:", { 
+      activeTab, 
+      refPoint,
+      cacheKeys: Object.keys(resultsCache.current)
+    });
 
     setResults([]);
     setIsLoading(true);
@@ -55,30 +71,47 @@ function HomePage() {
 
     try {
       const query = buildQuery();
+      
+      console.log("📝 Generated query for", activeTab, ":", query.substring(0, 100) + "...");
+      
+      const payload = {
+        query,
+        user_context: {
+          locale: "en_US",
+          latitude: refPoint.lat,
+          longitude: refPoint.lng,
+        },
+      };
 
-      const resp = await fetch("http://localhost:5174/api/yelp-ai", {
+      console.log("📤 Sending payload:", JSON.stringify(payload, null, 2));
+
+      const resp = await fetch("http://localhost:3000/api/yelp-ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query,
-          user_context: {
-            locale: "en_US",
-            latitude: refPoint.lat,
-            longitude: refPoint.lng,
-          },
-        }),
+        body: JSON.stringify(payload),
       });
 
+      console.log("📥 Response status:", resp.status);
+
       const data = await resp.json();
+      
+      console.log("📥 Response data:", data);
+
+      if (!resp.ok) {
+        console.error("❌ API Error:", data);
+        alert(`API Error: ${data.error || 'Unknown error'}`);
+        return;
+      }
 
       if (data?.chat_id) setChatId(data.chat_id);
 
       const places = mapYelpAiToPlaces(data);
 
+      console.log("💾 Caching", places.length, "results for tab:", activeTab);
       resultsCache.current[activeTab] = places;
       setResults(places);
     } catch (e) {
-      console.error(e);
+      console.error("❌ Search error:", e);
       setResults([]);
     } finally {
       setIsLoading(false);
@@ -110,6 +143,38 @@ Use the user's coordinates. Prefer closest + highly rated.
 Return Yelp business results (not general advice).
 `;
   };
+
+  useEffect(() => {
+    console.log("🔍 Tab change effect triggered:", {
+      activeTab,
+      hasRefPoint: !!(refPoint?.lat && refPoint?.lng),
+      cacheKeys: Object.keys(resultsCache.current),
+      hasCacheForTab: !!resultsCache.current[activeTab],
+      cacheSize: Object.keys(resultsCache.current).length
+    });
+
+    // Only proceed if we have a valid location
+    if (!refPoint?.lat || !refPoint?.lng) {
+      console.log("⏭️ Skipping - no location set");
+      return;
+    }
+
+    // If we have cached results for this tab, use them
+    if (resultsCache.current[activeTab]) {
+      console.log("📦 Using cached results for", activeTab, "- count:", resultsCache.current[activeTab].length);
+      setResults(resultsCache.current[activeTab]);
+    } 
+    // If we have cache for ANY tab, that means user has searched before
+    // So we should search for this new tab too
+    else if (Object.keys(resultsCache.current).length > 0) {
+      console.log("🔄 No cache for", activeTab, "but have other cached tabs - fetching new results");
+      handleSearch();
+    }
+    // Otherwise, don't auto-search on tab change - wait for user to click search
+    else {
+      console.log("⏭️ No cache yet - waiting for initial search");
+    }
+  }, [activeTab, refPoint]);
 
   const handleToggleControls = () => {
     setShowControls((prev) => !prev);

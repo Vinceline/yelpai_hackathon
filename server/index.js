@@ -18,38 +18,61 @@ app.get("/api/health", (req, res) => {
 
 app.post("/api/yelp-ai", async (req, res) => {
   try {
+    console.log("📥 Received request body:", JSON.stringify(req.body, null, 2));
+    
     const { query, user_context, chat_id } = req.body;
 
     if (!query || typeof query !== "string") {
+      console.error("❌ Missing or invalid query:", query);
       return res.status(400).json({ error: "Missing or invalid `query`" });
     }
 
     const apiKey = process.env.YELP_API_KEY;
     if (!apiKey) {
+      console.error("❌ Missing YELP_API_KEY in environment");
       return res.status(500).json({
-        error: "Missing YELP_API_KEY in .env (server isn’t reading env vars)",
+        error: "Missing YELP_API_KEY in .env (server isn't reading env vars)",
       });
     }
 
     // Yelp AI API contract:
     // New search requires user_context; follow-ups use chat_id.
     const payload = chat_id
-      ? { query, chat_id }
-      : { query, user_context };
+      ? { 
+          query,
+          messages: [{ role: "user", content: query }],
+          chat_id 
+        }
+      : { 
+          query,
+          messages: [{ role: "user", content: query }],
+          user_context 
+        };
 
     if (!chat_id) {
       // enforce user_context for new searches
+      console.log("🔍 Validating user_context:", user_context);
+      
       if (
         !payload.user_context ||
         typeof payload.user_context.latitude !== "number" ||
         typeof payload.user_context.longitude !== "number"
       ) {
+        console.error("❌ Invalid user_context:", {
+          has_user_context: !!payload.user_context,
+          latitude: payload.user_context?.latitude,
+          latitude_type: typeof payload.user_context?.latitude,
+          longitude: payload.user_context?.longitude,
+          longitude_type: typeof payload.user_context?.longitude,
+        });
         return res.status(400).json({
           error: "Missing user_context.latitude/longitude for new search",
           got: payload.user_context || null,
         });
       }
     }
+
+    console.log("📤 Sending to Yelp API:", JSON.stringify(payload, null, 2));
 
     const yelpResp = await fetch("https://api.yelp.com/ai/chat/v2", {
       method: "POST",
@@ -77,6 +100,7 @@ app.post("/api/yelp-ai", async (req, res) => {
       });
     }
 
+    console.log("✅ Success! Returning data to client");
     res.json(data);
   } catch (err) {
     console.error("Server error:", err);
